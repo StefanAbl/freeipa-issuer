@@ -11,7 +11,7 @@ import (
 	api "github.com/guilhem/freeipa-issuer/api/v1beta1"
 	certmanager "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
 	"github.com/jetstack/cert-manager/pkg/util/pki"
-	"github.com/tehwalris/go-freeipa/freeipa"
+	"github.com/stefanabl/go-freeipa/freeipa"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
@@ -117,7 +117,16 @@ func (s *FreeIPAPKI) Sign(ctx context.Context, cr *certmanager.CertificateReques
 				return nil, nil, fmt.Errorf("fail listing services: %v", err)
 			}
 		} else if svcList.Count == 0 {
-			if _, err := s.client.ServiceAdd(&freeipa.ServiceAddArgs{Krbcanonicalname: name}, &freeipa.ServiceAddOptionalArgs{Force: freeipa.Bool(true)}); err != nil && !s.spec.IgnoreError {
+			optionalArgs := &freeipa.ServiceAddOptionalArgs{Force: freeipa.Bool(true)}
+			//if a host with the same FQDN does not exist the service cannot be created without the skipHostCheck flag set
+			if !s.spec.AddHost {
+				optionalArgs = &freeipa.ServiceAddOptionalArgs{
+					Force: freeipa.Bool(true),
+					SkipHostCheck: freeipa.Bool(true),
+				}
+			}
+
+			if _, err := s.client.ServiceAdd(&freeipa.ServiceAddArgs{Krbcanonicalname: name}, optionalArgs); err != nil && !s.spec.IgnoreError {
 				return nil, nil, fmt.Errorf("fail adding service: %v", err)
 			}
 		}
