@@ -121,7 +121,6 @@ func (r *CertificateRequestReconciler) Reconcile(ctx context.Context, req reconc
 	log.Info("validation ok")
 
 	var issNamespaceName types.NamespacedName
-
 	if cr.Spec.IssuerRef.Kind == "Issuer" {
 		iss := api.Issuer{}
 		issNamespaceName = types.NamespacedName{
@@ -145,12 +144,11 @@ func (r *CertificateRequestReconciler) Reconcile(ctx context.Context, req reconc
 		}
 	} else if cr.Spec.IssuerRef.Kind == "ClusterIssuer" {
 		issNamespaceName = types.NamespacedName{
-			Namespace: "",
 			Name:      cr.Spec.IssuerRef.Name,
 		}
 	}
 
-	log.WithValues("issuer", issNamespaceName).Info("process")
+	log.WithValues("issuer", issNamespaceName).WithValues("issuerRef", cr.Spec.IssuerRef).Info("process")
 
 	// Load the provisioner that will sign the CertificateRequest
 	p, ok := provisioners.Load(issNamespaceName)

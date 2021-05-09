@@ -51,6 +51,7 @@ func New(namespacedName types.NamespacedName, spec *api.IssuerSpec, user, passwo
 
 // Load returns a provisioner by NamespacedName.
 func Load(namespacedName types.NamespacedName) (*FreeIPAPKI, bool) {
+	fmt.Printf("Attempting to load privisioner with name %s", namespacedName)
 	v, ok := collection.Load(namespacedName)
 	if !ok {
 		return nil, ok
@@ -61,6 +62,7 @@ func Load(namespacedName types.NamespacedName) (*FreeIPAPKI, bool) {
 
 // Store adds a new provisioner to the collection by NamespacedName.
 func Store(namespacedName types.NamespacedName, provisioner *FreeIPAPKI) {
+	fmt.Printf("Stored provisioner with name %s", namespacedName)
 	collection.Store(namespacedName, provisioner)
 }
 
@@ -114,7 +116,7 @@ func (s *FreeIPAPKI) Sign(ctx context.Context, cr *certmanager.CertificateReques
 
 		if err != nil {
 			if !s.spec.IgnoreError {
-				return nil, nil, fmt.Errorf("fail listing services: %v", err)
+				//return nil, nil, fmt.Errorf("fail listing services: %v", err)
 			}
 		} else if svcList.Count == 0 {
 			optionalArgs := &freeipa.ServiceAddOptionalArgs{Force: freeipa.Bool(true)}
