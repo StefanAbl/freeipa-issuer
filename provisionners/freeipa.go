@@ -11,7 +11,7 @@ import (
 	api "github.com/guilhem/freeipa-issuer/api/v1beta1"
 	certmanager "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
 	"github.com/jetstack/cert-manager/pkg/util/pki"
-	"github.com/tehwalris/go-freeipa/freeipa"
+	"github.com/stefanabl/go-freeipa/freeipa"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
@@ -51,6 +51,7 @@ func New(namespacedName types.NamespacedName, spec *api.IssuerSpec, user, passwo
 
 // Load returns a provisioner by NamespacedName.
 func Load(namespacedName types.NamespacedName) (*FreeIPAPKI, bool) {
+	fmt.Printf("Attempting to load privisioner with name %s", namespacedName)
 	v, ok := collection.Load(namespacedName)
 	if !ok {
 		return nil, ok
@@ -61,6 +62,7 @@ func Load(namespacedName types.NamespacedName) (*FreeIPAPKI, bool) {
 
 // Store adds a new provisioner to the collection by NamespacedName.
 func Store(namespacedName types.NamespacedName, provisioner *FreeIPAPKI) {
+	fmt.Printf("Stored provisioner with name %s", namespacedName)
 	collection.Store(namespacedName, provisioner)
 }
 
@@ -114,10 +116,19 @@ func (s *FreeIPAPKI) Sign(ctx context.Context, cr *certmanager.CertificateReques
 
 		if err != nil {
 			if !s.spec.IgnoreError {
-				return nil, nil, fmt.Errorf("fail listing services: %v", err)
+				//return nil, nil, fmt.Errorf("fail listing services: %v", err)
 			}
 		} else if svcList.Count == 0 {
-			if _, err := s.client.ServiceAdd(&freeipa.ServiceAddArgs{Krbcanonicalname: name}, &freeipa.ServiceAddOptionalArgs{Force: freeipa.Bool(true)}); err != nil && !s.spec.IgnoreError {
+			optionalArgs := &freeipa.ServiceAddOptionalArgs{Force: freeipa.Bool(true)}
+			//if a host with the same FQDN does not exist the service cannot be created without the skipHostCheck flag set
+			if !s.spec.AddHost {
+				optionalArgs = &freeipa.ServiceAddOptionalArgs{
+					Force: freeipa.Bool(true),
+					SkipHostCheck: freeipa.Bool(true),
+				}
+			}
+
+			if _, err := s.client.ServiceAdd(&freeipa.ServiceAddArgs{Krbcanonicalname: name}, optionalArgs); err != nil && !s.spec.IgnoreError {
 				return nil, nil, fmt.Errorf("fail adding service: %v", err)
 			}
 		}

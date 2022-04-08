@@ -72,6 +72,8 @@ func (r *ClusterIssuerReconciler) Reconcile(ctx context.Context, req reconcile.R
 	}
 
 	provisioners.Store(req.NamespacedName, p)
+	msg := fmt.Sprintf("Successfully stored cluster issuer as provisioner with name %s" , req.NamespacedName)
+	log.Info(msg)
 
 	return reconcile.Result{}, r.setStatus(ctx, iss, api.ConditionTrue, "Verified", "ClusterIssuer verified and ready to sign certificates")
 }

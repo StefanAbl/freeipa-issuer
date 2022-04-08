@@ -478,6 +478,10 @@ github.com/spf13/pflag v1.0.5/go.mod h1:McXfInJRrz4CZXVZOBLb0bTZqETkiAhM9Iw0y3An
 github.com/spf13/viper v1.3.2/go.mod h1:ZiWeW+zYFKm7srdB9IoDzzZXaJaI5eL9QjNiN/DMA2s=
 github.com/spf13/viper v1.4.0/go.mod h1:PTJ7Z/lr49W6bUbkmS1V3by4uWynFiR9p7+dSq/yZzE=
 github.com/spf13/viper v1.7.0/go.mod h1:8WkrPz2fc9jxqZNCJI/76HCieCp4Q8HaLFoCha5qpdg=
+github.com/stefanabl/go-freeipa v0.0.0-20200322083409-e462fc554b76 h1:tKOofL0RSBS6nwWXTChvL3BFXRgJ8bkgEkVb/o6YDTc=
+github.com/stefanabl/go-freeipa v0.0.0-20200322083409-e462fc554b76/go.mod h1:lW/f994IOdHNZi8qOhMEFI/rHUf5lQknpDMegsOz588=
+github.com/stefanabl/go-freeipa v0.0.0-20210412144615-15b9e9ae4429 h1:UE5CFDuAVZpkYogjkr+4aHIXRhda+ayMUOjnWSus1SA=
+github.com/stefanabl/go-freeipa v0.0.0-20210412144615-15b9e9ae4429/go.mod h1:lW/f994IOdHNZi8qOhMEFI/rHUf5lQknpDMegsOz588=
 github.com/stoewer/go-strcase v1.2.0/go.mod h1:IBiWB2sKIp3wVVQ3Y035++gc+knqhUQag1KpM8ahLw8=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.1.1/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
