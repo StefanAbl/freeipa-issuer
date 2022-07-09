@@ -103,6 +103,7 @@ spec:
             - addService
             - ca
             - host
+            - ignoreError
             - insecure
             - password
             - serviceName
