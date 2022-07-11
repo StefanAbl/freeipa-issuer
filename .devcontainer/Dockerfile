@@ -11,6 +11,11 @@ RUN if [ "${NODE_VERSION}" != "none" ]; then su vscode -c "umask 0002 && . /usr/
 # [Optional] Uncomment this section to install additional OS packages.
 # RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
 #     && apt-get -y install --no-install-recommends <your-package-list-here>
+RUN OS=$(uname -s | tr '[:upper:]' '[:lower:]') && \
+    ARCH=$(uname -m | sed 's/x86_64/amd64/') && \
+    curl -fsL "https://storage.googleapis.com/kubebuilder-tools/kubebuilder-tools-1.16.4-${OS}-${ARCH}.tar.gz" -o kubebuilder-tools && \
+    tar -zvxf kubebuilder-tools && \
+    mv kubebuilder/ /usr/local/kubebuilder 
 
 # [Optional] Uncomment the next lines to use go get to install anything else you need
 # USER vscode
