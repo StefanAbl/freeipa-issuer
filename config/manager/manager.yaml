@@ -27,7 +27,7 @@ spec:
         - /manager
         args:
         - --enable-leader-election
-        image: stefanabl/controller:latest
+        image: ghcr.io/stefanabl/freeipa-issuer:latest
         name: manager
         resources:
           limits:
