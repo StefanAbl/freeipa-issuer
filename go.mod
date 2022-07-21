@@ -6,7 +6,7 @@ require (
 	github.com/jetstack/cert-manager v1.7.2
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.19.0
-	github.com/stefanabl/go-freeipa v0.0.0-20210412144615-15b9e9ae4429
+	github.com/stefanabl/go-freeipa/freeipa v0.0.0-20220721142854-45a8a79e4497
 	k8s.io/api v0.23.5
 	k8s.io/apimachinery v0.23.5
 	k8s.io/client-go v0.23.5
@@ -42,7 +42,6 @@ require (
 	github.com/prometheus/common v0.28.0 // indirect
 	github.com/prometheus/procfs v0.6.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/tehwalris/go-freeipa v0.0.0-20220405182840-f001416ae471 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.19.1 // indirect
