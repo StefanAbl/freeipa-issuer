@@ -52,34 +52,43 @@ func (r *CertificateRequestReconciler) Reconcile(ctx context.Context, req reconc
 	}
 
 	if cr.Spec.IssuerRef.Group != "" && cr.Spec.IssuerRef.Group != api.GroupVersion.Group {
-		log.Info("resource does not specify an issuerRef group name that we are responsible for", "group", cr.Spec.IssuerRef.Group)
+		log.Info(
+			"resource does not specify an issuerRef group name that we are responsible for", "group",
+			cr.Spec.IssuerRef.Group,
+		)
 
 		return reconcile.Result{}, nil
 	}
 
 	// Ignore CertificateRequest if it is already Ready
-	if cmutil.CertificateRequestHasCondition(cr, certmanager.CertificateRequestCondition{
-		Type:   certmanager.CertificateRequestConditionReady,
-		Status: cmmeta.ConditionTrue,
-	}) {
+	if cmutil.CertificateRequestHasCondition(
+		cr, certmanager.CertificateRequestCondition{
+			Type:   certmanager.CertificateRequestConditionReady,
+			Status: cmmeta.ConditionTrue,
+		},
+	) {
 		log.V(4).Info("CertificateRequest is Ready. Ignoring.")
 		return reconcile.Result{}, nil
 	}
 	// Ignore CertificateRequest if it is already Failed
-	if cmutil.CertificateRequestHasCondition(cr, certmanager.CertificateRequestCondition{
-		Type:   certmanager.CertificateRequestConditionReady,
-		Status: cmmeta.ConditionFalse,
-		Reason: certmanager.CertificateRequestReasonFailed,
-	}) {
+	if cmutil.CertificateRequestHasCondition(
+		cr, certmanager.CertificateRequestCondition{
+			Type:   certmanager.CertificateRequestConditionReady,
+			Status: cmmeta.ConditionFalse,
+			Reason: certmanager.CertificateRequestReasonFailed,
+		},
+	) {
 		log.V(4).Info("CertificateRequest is Failed. Ignoring.")
 		return reconcile.Result{}, nil
 	}
 	// Ignore CertificateRequest if it already has a Denied Ready Reason
-	if cmutil.CertificateRequestHasCondition(cr, certmanager.CertificateRequestCondition{
-		Type:   certmanager.CertificateRequestConditionReady,
-		Status: cmmeta.ConditionFalse,
-		Reason: certmanager.CertificateRequestReasonDenied,
-	}) {
+	if cmutil.CertificateRequestHasCondition(
+		cr, certmanager.CertificateRequestCondition{
+			Type:   certmanager.CertificateRequestConditionReady,
+			Status: cmmeta.ConditionFalse,
+			Reason: certmanager.CertificateRequestReasonDenied,
+		},
+	) {
 		log.V(4).Info("CertificateRequest already has a Ready condition with Denied Reason. Ignoring.")
 		return reconcile.Result{}, nil
 	}
@@ -95,7 +104,9 @@ func (r *CertificateRequestReconciler) Reconcile(ctx context.Context, req reconc
 		}
 
 		message := "The CertificateRequest was denied by an approval controller"
-		return reconcile.Result{}, r.setStatus(ctx, cr, cmmeta.ConditionFalse, certmanager.CertificateRequestReasonDenied, message)
+		return reconcile.Result{}, r.setStatus(
+			ctx, cr, cmmeta.ConditionFalse, certmanager.CertificateRequestReasonDenied, message,
+		)
 	}
 
 	if r.CheckApprovedCondition {
@@ -129,22 +140,34 @@ func (r *CertificateRequestReconciler) Reconcile(ctx context.Context, req reconc
 		}
 
 		if err := r.Client.Get(ctx, issNamespaceName, &iss); err != nil {
-			log.Error(err, "failed to retrieve Issuer resource", "namespace", issNamespaceName.Namespace, "name", issNamespaceName.Name)
-			_ = r.setStatus(ctx, cr, cmmeta.ConditionFalse, certmanager.CertificateRequestReasonPending, fmt.Sprintf("Failed to retrieve Issuer resource %s: %v", issNamespaceName, err))
+			log.Error(
+				err, "failed to retrieve Issuer resource", "namespace", issNamespaceName.Namespace, "name",
+				issNamespaceName.Name,
+			)
+			_ = r.setStatus(
+				ctx, cr, cmmeta.ConditionFalse, certmanager.CertificateRequestReasonPending,
+				fmt.Sprintf("Failed to retrieve Issuer resource %s: %v", issNamespaceName, err),
+			)
 
 			return reconcile.Result{}, err
 		}
 
 		if !issuerHasCondition(iss, api.IssuerCondition{Type: api.ConditionReady, Status: api.ConditionTrue}) {
 			err := fmt.Errorf("resource %s is not ready", issNamespaceName)
-			log.Error(err, "issuer failed readiness checks", "namespace", issNamespaceName.Namespace, "name", issNamespaceName.Name)
-			_ = r.setStatus(ctx, cr, cmmeta.ConditionFalse, certmanager.CertificateRequestReasonPending, fmt.Sprintf("Issuer %s is not Ready", issNamespaceName))
+			log.Error(
+				err, "issuer failed readiness checks", "namespace", issNamespaceName.Namespace, "name",
+				issNamespaceName.Name,
+			)
+			_ = r.setStatus(
+				ctx, cr, cmmeta.ConditionFalse, certmanager.CertificateRequestReasonPending,
+				fmt.Sprintf("Issuer %s is not Ready", issNamespaceName),
+			)
 
 			return reconcile.Result{}, err
 		}
 	} else if cr.Spec.IssuerRef.Kind == "ClusterIssuer" {
 		issNamespaceName = types.NamespacedName{
-			Name:      cr.Spec.IssuerRef.Name,
+			Name: cr.Spec.IssuerRef.Name,
 		}
 	}
 
@@ -155,27 +178,35 @@ func (r *CertificateRequestReconciler) Reconcile(ctx context.Context, req reconc
 	if !ok {
 		err := fmt.Errorf("provisioner %s not found", issNamespaceName)
 		log.Error(err, "failed to provisioner for Issuer resource")
-		_ = r.setStatus(ctx, cr, cmmeta.ConditionFalse, certmanager.CertificateRequestReasonPending, fmt.Sprintf("Failed to load provisioner for Issuer resource %s", issNamespaceName))
+		_ = r.setStatus(
+			ctx, cr, cmmeta.ConditionFalse, certmanager.CertificateRequestReasonPending,
+			fmt.Sprintf("Failed to load provisioner for Issuer resource %s", issNamespaceName),
+		)
 		return reconcile.Result{}, err
 	}
 
-	cert, ca, err := p.Sign(ctx, cr)
+	cert, _, err := p.Sign(ctx, cr)
 	if err != nil {
 		log.Error(err, "failed to sign certificate request")
-		_ = r.setStatus(ctx, cr, cmmeta.ConditionFalse, certmanager.CertificateRequestReasonFailed, fmt.Sprintf("Failed to sign certificate request: %v", err))
+		_ = r.setStatus(
+			ctx, cr, cmmeta.ConditionFalse, certmanager.CertificateRequestReasonFailed,
+			fmt.Sprintf("Failed to sign certificate request: %v", err),
+		)
 
 		return reconcile.Result{}, err
 	}
 
 	cr.Status.Certificate = cert
-	cr.Status.CA = ca
+	//cr.Status.CA = ca
 	_ = r.setStatus(ctx, cr, cmmeta.ConditionTrue, certmanager.CertificateRequestReasonIssued, "Certificate issued")
 
 	return reconcile.Result{}, nil
 }
 
 // setStatus is a helper function to set the CertifcateRequest status condition with reason and message, and update the API.
-func (r *CertificateRequestReconciler) setStatus(ctx context.Context, cr *certmanager.CertificateRequest, status cmmeta.ConditionStatus, reason, message string) error {
+func (r *CertificateRequestReconciler) setStatus(
+	ctx context.Context, cr *certmanager.CertificateRequest, status cmmeta.ConditionStatus, reason, message string,
+) error {
 	cmutil.SetCertificateRequestCondition(cr, certmanager.CertificateRequestConditionReady, status, reason, message)
 
 	return r.Client.Status().Update(ctx, cr)
