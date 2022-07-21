@@ -28,7 +28,9 @@ type FreeIPAPKI struct {
 
 // New returns a new provisioner, configured with the information in the
 // given issuer.
-func New(namespacedName types.NamespacedName, spec *api.IssuerSpec, user, password string, insecure bool) (*FreeIPAPKI, error) {
+func New(namespacedName types.NamespacedName, spec *api.IssuerSpec, user, password string, insecure bool) (
+	*FreeIPAPKI, error,
+) {
 	tspt := http.Transport{
 		TLSClientConfig: &tls.Config{
 			InsecureSkipVerify: insecure,
@@ -87,13 +89,17 @@ func (s *FreeIPAPKI) Sign(ctx context.Context, cr *certmanager.CertificateReques
 
 	// Adding Host
 	if s.spec.AddHost {
-		if _, err := s.client.HostShow(&freeipa.HostShowArgs{Fqdn: csr.Subject.CommonName}, &freeipa.HostShowOptionalArgs{}); err != nil {
+		if _, err := s.client.HostShow(
+			&freeipa.HostShowArgs{Fqdn: csr.Subject.CommonName}, &freeipa.HostShowOptionalArgs{},
+		); err != nil {
 			if ipaE, ok := err.(*freeipa.Error); ok && ipaE.Code == freeipa.NotFoundCode {
-				if _, err := s.client.HostAdd(&freeipa.HostAddArgs{
-					Fqdn: csr.Subject.CommonName,
-				}, &freeipa.HostAddOptionalArgs{
-					Force: freeipa.Bool(true),
-				}); err != nil {
+				if _, err := s.client.HostAdd(
+					&freeipa.HostAddArgs{
+						Fqdn: csr.Subject.CommonName,
+					}, &freeipa.HostAddOptionalArgs{
+						Force: freeipa.Bool(true),
+					},
+				); err != nil {
 					return nil, nil, fmt.Errorf("fail adding host: %v", err)
 				}
 			} else {
@@ -112,7 +118,8 @@ func (s *FreeIPAPKI) Sign(ctx context.Context, cr *certmanager.CertificateReques
 			&freeipa.ServiceFindOptionalArgs{
 				PkeyOnly:  freeipa.Bool(true),
 				Sizelimit: freeipa.Int(1),
-			})
+			},
+		)
 
 		if err != nil {
 			if !s.spec.IgnoreError {
@@ -123,24 +130,28 @@ func (s *FreeIPAPKI) Sign(ctx context.Context, cr *certmanager.CertificateReques
 			//if a host with the same FQDN does not exist the service cannot be created without the skipHostCheck flag set
 			if !s.spec.AddHost {
 				optionalArgs = &freeipa.ServiceAddOptionalArgs{
-					Force: freeipa.Bool(true),
+					Force:         freeipa.Bool(true),
 					SkipHostCheck: freeipa.Bool(true),
 				}
 			}
 
-			if _, err := s.client.ServiceAdd(&freeipa.ServiceAddArgs{Krbcanonicalname: name}, optionalArgs); err != nil && !s.spec.IgnoreError {
+			if _, err := s.client.ServiceAdd(
+				&freeipa.ServiceAddArgs{Krbcanonicalname: name}, optionalArgs,
+			); err != nil && !s.spec.IgnoreError {
 				return nil, nil, fmt.Errorf("fail adding service: %v", err)
 			}
 		}
 	}
 
-	result, err := s.client.CertRequest(&freeipa.CertRequestArgs{
-		Csr:       string(cr.Spec.Request),
-		Principal: name,
-	}, &freeipa.CertRequestOptionalArgs{
-		Cacn: &s.spec.Ca,
-		Add:  &s.spec.AddPrincipal,
-	})
+	result, err := s.client.CertRequest(
+		&freeipa.CertRequestArgs{
+			Csr:       string(cr.Spec.Request),
+			Principal: name,
+		}, &freeipa.CertRequestOptionalArgs{
+			Cacn: &s.spec.Ca,
+			Add:  &s.spec.AddPrincipal,
+		},
+	)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Fail to request certificate: %v", err)
 	}
@@ -152,7 +163,12 @@ func (s *FreeIPAPKI) Sign(ctx context.Context, cr *certmanager.CertificateReques
 	var certPem string
 	var caPem string
 
-	cert, err := s.client.CertShow(reqCertShow, &freeipa.CertShowOptionalArgs{Chain: freeipa.Bool(true)})
+	cert, err := s.client.CertShow(
+		reqCertShow, &freeipa.CertShowOptionalArgs{
+			Chain: freeipa.Bool(true),
+			All:   freeipa.Bool(true),
+		},
+	)
 	if err != nil || len(*cert.Result.CertificateChain) == 0 {
 		log.Error(err, "fail to get certificate FALLBACK", "requestResult", result)
 
